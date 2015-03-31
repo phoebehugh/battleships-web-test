@@ -1,37 +1,42 @@
-require_relative 'cell'
-require_relative 'water'
-
 class Ship
-  attr_reader :hits_left, :ship_length
+  attr_reader :size
+  attr_accessor :hits
 
-  def initialize (ship_length)
-    @floating = true
-    @hits_left = ship_length
-    @ship_length = ship_length
+  def initialize(size)
+    @size, @hits = size, 0
+  end
+
+  def hit!
+    self.hits += 1
+    true
+  end
+
+  def sunk?
+    hits == size
   end
 
   def floating?
-    @floating
+    !sunk?
   end
 
-  def receive_shot
-    # @number_of_hits += 1
-    # sunk?
-    damage_ship!
-    sink_ship! if no_hits_left?
+  def self.aircraft_carrier
+    new 5
   end
 
-  private
-
-  def sink_ship!
-    @floating = false
+  def self.battleship
+    new 4
   end
 
-  def damage_ship!
-    @hits_left -= 1
+  def self.destroyer
+    new 3
   end
 
-  def no_hits_left?
-    @hits_left == 0
+  def self.submarine
+    new 3
   end
+
+  def self.patrol_boat
+    new 5
+  end
+
 end

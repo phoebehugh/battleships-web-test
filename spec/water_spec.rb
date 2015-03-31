@@ -1,11 +1,9 @@
 require 'water'
-
 describe Water do
-  it 'isnt hit when created' do
-    expect(subject.has_been_hit).to be false
+  let(:water){Water.new}
+  it "can be hit" do
+    water.hit!
+    expect(water).to be_hit
   end
-  it 'can be hit' do
-    subject.hit!
-    expect(subject.has_been_hit).to be true
-  end
+
 end

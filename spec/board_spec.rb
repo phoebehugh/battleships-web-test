@@ -1,60 +1,85 @@
 require 'board'
 
 describe Board do
-  let(:board) { Board.new Cell, Water, 3}
-  let(:ship) { double :ship, :hit! => nil }
-  let(:cell_class) { double :cell_class, :new => true }
-  let(:content_class) { double :content_class, :new => true }
+  let(:water) {double :water}
+  let(:cell){double :cell, content: water, :content= => nil, hit?:nil}
+  let(:second_cell){double :second_cell, :content= => nil,content: nil, hit?: nil}
+  let(:third_cell){double :second_cell, :content= => nil, hit?: nil}
+  let(:cell_class){double :cell_class, :new => cell}
+  let(:ship){double :ship, size: 2, sunk?: false, floating?: true }
+  let(:second_ship){double :ship, size: 2, sunk?: false }
+  let(:board){Board.new(cell_class)}
 
-  it "initializes with a hash of unique cells" do
-    expect(cell_class).to receive(:new).exactly(9).times
-    Board.new cell_class, content_class, 3 
+  it "can have a grid of 100 places" do
+    expect(board.grid.count).to eq 100
   end
 
-  it "should have a grid with 9 cells" do
-    expect(board.grid.count).to eq 9
+  it "should have coordiantes" do
+    expect(board.grid[:A1].content).to eq water
   end
 
-  it "can place a ship on a cell with an xy co-ordinate" do
-    board.place_ship(ship, :coordinate)
-    expect(board.grid[:coordinate]).to eq ship
+  it "can place a ship" do
+    board.grid[:A2] = second_cell
+    expect(cell).to receive(:content=).with(ship)
+    board.place(ship,:A1)
   end
 
-  it "cannot place a ship on a cell that already contains a ship" do
-    board.place_ship(ship, :coordinate)
-    expect { board.place_ship(ship, :coordinate) }.to raise_error "There is already a ship on this cell!"
+  it "places a ship in all it's positions" do 
+    board.grid[:A2] = second_cell
+    allow(cell).to receive(:content=).with(ship)
+    expect(second_cell).to receive(:content=).with(ship)
+    board.place(ship, :A1)
   end
 
-  it "can shoot at a ship on the board" do
-    board.place_ship(ship, :coordinate)
-    expect(ship).to receive :receive_shot
-    board.receive_shot(:coordinate)
+  it "can place a ship verticall" do 
+    board.grid[:B1] = second_cell
+    expect(second_cell).to receive(:content=).with(ship)
+    board.place(ship, :A1, :vertically)
   end
 
-  it "knows that it has ships" do
-    board.place_ship(ship, :coordinate)
-    expect(board).to have_ships
+  it "knows if there are still floating ships" do
+    allow(board).to receive(:ships).and_return [ship]
+    expect(board.floating_ships?).to eq true
   end
 
-  it "knows that it does not have any ships" do
-    expect(board).not_to have_ships
+  it "knows when there are no floating ships" do 
+    sunk_ship = double :ship, size: 1, sunk?: true, floating?: false
+    allow(board).to receive(:ships).and_return [sunk_ship]
+    expect(board.floating_ships?).to eq false
   end
 
-  it "be loser if it doesn't have floating ships" do
-    board.place_ship(ship, :coordinate)
-    expect(ship).to receive(:floating?)
-    expect(board).to be_loser
+  it "passes a shot onto a ship" do
+    expect(cell).to receive(:shoot)
+    board.shoot_at(:A1)
   end
 
-  it "not be loser if it has floating ships" do
-    board.place_ship(ship, :coordinate)
-    expect(ship).to receive(:floating?) { true }
-    expect(board).not_to be_loser
+  it 'has a list of all the ships' do
+    board.grid[:A1] = second_cell
+    allow(second_cell).to receive(:content).and_return ship
+    expect(board.ships).to eq [ship]
   end
 
-  it "can get any number of grid width" do
-    board = Board.new cell_class, content_class, 5
-    expect(board.grid.count).to eq 25
+  it "cannot shoot at a cell which has been hit already" do
+    allow(cell).to receive(:hit?).and_return true
+    expect{board.shoot_at(:A1)}.to raise_error "You cannot hit the same square twice"
+  end
+
+  it "won't let you place ship outside of the grid" do
+    expect{board.place(ship, :K1)}.to raise_error "You cannot place a ship outside of the grid"
+  end
+
+  it "knows how many ships are on the grid" do
+    board.grid[:A1],board.grid[:A2] = second_cell, second_cell
+    board.grid[:B1] = third_cell
+    allow(second_cell).to receive(:content).and_return ship
+    allow(third_cell).to receive(:content).and_return second_ship
+    expect(board.ships_count).to eq 2
+  end
+
+  it "won't let you place a ship on top of another ship" do
+    board.grid[:A1] = second_cell
+    allow(second_cell).to receive(:content).and_return ship
+    expect{board.place(ship,:A1)}.to raise_error "You cannot place a ship on another ship"
   end
 
 end

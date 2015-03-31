@@ -12,7 +12,7 @@ class BattleShips < Sinatra::Base
   get '/new_game' do
     # @game = Game.new(Player.new("Phoebe"), Player.new("Dias"))
     # @player_one_name = @game.player_1.name
-    # erb(:new_game)
+    erb(:new_game)
   end
 
   # start the server if ruby file executed directly

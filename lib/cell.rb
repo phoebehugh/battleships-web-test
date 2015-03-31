@@ -1,21 +1,14 @@
-require_relative 'water'
-
 class Cell
-
   attr_accessor :content
-
-  def initialize content
-    @shot = false
-    @content = content.new
+  def initialize
+    @hit = false
   end
 
-  def shot?
-    @shot
+  def shoot
+    @hit = content.hit!
   end
 
-  def receive_shot
-    raise "Already been shot" if shot?
-    @shot = true
-    content.hit!
+  def hit?
+    @hit
   end
 end

@@ -1,34 +1,27 @@
 require 'player'
-
 describe Player do
-  let(:own_board) { double :own_board }
-  let(:player) { Player.new "Player", own_board }
-  let(:ship) { double :ship }
-
-  it "has a name" do
-    expect(player.name).to eq "Player"
+  let(:player){Player.new}
+  let(:board){double :board}
+   
+  it "can have a name" do 
+    player.name = "Stephen"
+    expect(player.name).to eq "Stephen"
   end
 
-  it "can place ships on the board at a coordinate" do
-    expect(own_board).to receive(:place_ship).with(ship, :coordinate)
-    player.place_ship(ship, :coordinate)
+  it "can have a board" do 
+    player.board = board
+    expect(player.board).to eq board
   end
 
-  it "can recieve a shot a coordinate" do
-    expect(own_board).to receive(:receive_shot).with(:coordinate)
-    player.receive_shot(:coordinate)
+  it "knows it has a board" do
+    player.board = board
+    expect(player).to have_board
   end
 
-  it "knows if he has floating ships" do
-    expect(own_board).to receive(:place_ship).with(ship, :coordinate)
-    expect(own_board).to receive(:has_ships?) { true }
-    player.place_ship(ship, :coordinate)
-    expect(player.own_board).to have_ships
-  end
-
-  it "knows if he has lost" do
-    expect(own_board).to receive(:loser?) { true }
-    expect(own_board).to be_loser
+  it "can receive shots" do
+    player.board = board
+    expect(board).to receive(:shoot_at).with(:A1)
+    player.receive_shot(:A1)
   end
 
 end

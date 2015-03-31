@@ -1,68 +1,119 @@
 require 'game'
-
 describe Game do
+  let(:game){Game.new}
+  let(:board){double :board, floating_ships?: true, ships_count: 1}
+  let(:board2){double :board, ships_count: 1}
+  let(:player1){double :player, board: board, has_board?: true }
+  let(:player2){double :player, board: board2, has_board?: true } 
 
-  let(:game) { Game.new }
-  let(:player_one) { double :player_one }
-  let(:player_two) { double :player_two }
-  let(:player) { double :player }
-  let(:game_with_two_players) { game }
+  it "can have players added" do 
+    game.add_player(player1)
+    expect(game.player1).to eq player1
+  end
+
+  it "can have a second player added" do
+    game.add_player(player1)
+    game.add_player(player2)
+    expect(game.player2).to eq player2
+  end
+
+  it "knows when there are two players" do 
+    game.send(:add_player, player1)
+    game.send(:add_player,player2)
+    expect(game.send(:has_two_players?)).to eq true
+  end
+
+  it "knows when it doesn't have two players" do
+    game.send(:add_player, player1)
+    expect(game.send(:has_two_players?)).to eq false
+  end
+
+  it "knows whos turn it is" do 
+    game.add_player(player1)
+    expect(game.send(:turn)).to eq(player1)
+  end
+
+context "has two players with boards" do
 
   before do
-    game_with_two_players.add_player player_one
-    game_with_two_players.add_player player_two
+    game.add_player(player1)
+    game.add_player(player2) 
   end
 
-  it "is not ready when created" do
-    expect(game).not_to be_ready
+  it "switchs turns when player1 has a go" do
+    allow(player2).to receive(:receive_shot)
+    allow(board2).to receive(:floating_ships?).and_return(true)
+    game.shoots(:A1)
+    expect(game.send(:turn)).to eq player2
   end
 
-  it "is not over when created" do 
-    expect(game).not_to be_over
+  it "receives a shot" do 
+    allow(board2).to receive(:floating_ships?).and_return(true)
+    expect(player2).to receive(:receive_shot).with(:A1)
+    game.shoots(:A1)
   end 
 
-  it "has no players when created" do
-    expect(game).not_to have_players
-  end 
 
-  it "can add the first player" do
-    expect(game_with_two_players.player_one).to eq player_one
+  it "trys to switch turns if there is a shot" do
+    allow(board2).to receive(:floating_ships?).and_return(true)
+    allow(player2).to receive(:receive_shot).with(:A1)
+    expect(game).to receive(:switch_turns)
+    game.shoots(:A1)
   end
 
-  it "can add the second player" do
-    expect(game_with_two_players.player_two).to eq player_two
+  it "raises there is a winner if there is a winner" do 
+    allow(board2).to receive(:floating_ships?).and_return(false)
+    allow(player2).to receive(:receive_shot).with(:A1)
+    expect{game.shoots(:A1)}.to raise_error "There is a winner you cannot shoot"
   end
 
-  it "knows when it is full" do
-    expect(game_with_two_players).to have_players
+  it "can have an opponent" do 
+    expect(game.opponent).to eq player2
   end
 
-  it "cannot add another player if it has two players" do
-    expect { game_with_two_players.add_player("banana") }.to raise_error "There Are Already Two Players!"
+  it "can switch turns" do 
+    game.send(:switch_turns)
+    expect(game.send(:turn)).to eq player2
   end
 
-  it "knows that the first player has the first turn" do
-    expect(game_with_two_players.current_player).to eq player_one
+  it "knows if there is a winner" do
+    allow(board2).to receive(:floating_ships?).and_return(false)
+    expect(game.winner).to eq player1 
   end
 
-  it "can switch turns" do
-    expect(game_with_two_players).to receive(:switch_turns) { player }
-    game_with_two_players.switch_turns
+  it "knows a game is not ready" do
+    expect(game.ready?).to eq false
   end
 
-  it "knows who the current player is" do
-    expect(game_with_two_players).to receive(:current_player) { player }
-    game_with_two_players.current_player
+  it "expects to ask a ship count from players 1s board" do 
+    expect(board).to receive(:ships_count).and_return 5
+    game.ready?
   end
 
-  xit "knows who the opponent is" do
+  it "expects to ask if player 1 has a board" do 
+    expect(player1).to receive(:has_board?).and_return true
+    game.ready?
   end
 
-  xit "can fire a shot at opponent" do
-    # given we have a game with two players
-    # we need doubles for players
-    # when the game fires a shot at a coordinate
-    # we want that the opponent to receive :receive_shot with that coordinate
+  it "expects to ask a ship count from player 2s board" do 
+    allow(board).to receive(:ships_count).and_return 5
+    expect(board2).to receive(:ships_count).and_return 5
+    game.ready?
   end
+
+  it "expects to ask player2 if they have a board" do 
+    expect(player2).to receive(:has_board?).and_return true
+    game.ready?
+  end
+
+  it "knows when a game is ready" do 
+    allow(board).to receive(:ships_count).and_return 5
+    allow(player1).to receive(:has_board?).and_return true
+    allow(board2).to receive(:ships_count).and_return 5
+    allow(player2).to receive(:has_board?).and_return true
+    expect(game.ready?).to eq true
+  end
+
+end
 
 end
