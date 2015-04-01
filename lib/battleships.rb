@@ -1,18 +1,47 @@
 require 'sinatra/base'
 Dir[File.dirname(__FILE__) + '/lib/*.rb'].each {|file| require file }
 
+# class Player
+#   attr_accessor :name
+# end
+
+# class Game
+#   def players
+#     @players || = []
+#   end
+
+#   def add_player(player)
+#     players << player
+#   end
+# end
+
 class BattleShips < Sinatra::Base
   
   set :views, Proc.new { File.join(root, "..", "views") }
+  set :public_folder, Proc.new { File.join(root, "..", "public") }
 
-  get '/' do
+#
+  enable :sessions
+
+  get '/' do # taking in something like gets
+    # puts session.inspect
+    puts session[:years_alive]
     erb :homepage
   end
 
-  get '/new_game' do
-    # @game = Game.new(Player.new("Phoebe"), Player.new("Dias"))
-    # @player_one_name = @game.player_1.name
-    erb(:new_game)
+  get '/name' do
+    erb(:name)
+  end
+
+  post '/new_game' do
+      # puts session.inspect
+      # puts params.inspect
+      # player = Player.new
+      # player.name = @name
+      session[:name] = params[:player_name]
+      session[:years_alive] = params[:age]
+
+      erb(:new_game)
   end
 
   # start the server if ruby file executed directly
