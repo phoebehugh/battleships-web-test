@@ -29,7 +29,7 @@ class BattleShips < Sinatra::Base
     erb :homepage
   end
 
-  get '/name' do
+  get '/registration' do
     erb(:name)
   end
 
@@ -38,9 +38,10 @@ class BattleShips < Sinatra::Base
       # puts params.inspect
       # player = Player.new
       # player.name = @name
-      session[:name] = params[:player_name]
-      session[:years_alive] = params[:age]
-
+      name = params[:player_name]
+      "Oh your name is #{name}"
+      session[:name] = params[:board_size]
+      session[:name] = params[:pieces_count]
       erb(:new_game)
   end
 
